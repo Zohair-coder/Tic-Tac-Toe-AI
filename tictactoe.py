@@ -51,14 +51,17 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    if len(action) != 2 or action[0] > 2 or action[0] < 0 or action[1] > 2 or action[1] < 0:
-        raise Exception("Invalid action")
+    if terminal(board):
+        raise ValueError("Game over.")
+    elif action not in actions(board):
+        raise ValueError("Invalid action.")
+    else:
+        p = player(board)
+        result_board = copy.deepcopy(board)
+        (i, j) = action
+        result_board[i][j] = p
 
-    new_board = copy.deepcopy(board)
-
-    turn = player(board)
-    new_board[action[0]][action[1]] = turn
-    return new_board
+    return result_board
 
 
 def winner(board):
@@ -128,12 +131,12 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    if winner(board) == None:
-        return False
+    if winner(board) is not None:
+        return True
 
     for row in board:
         for element in row:
-            if element == None:
+            if element is None:
                 return False
 
     return True
@@ -157,40 +160,45 @@ def minimax(board):
     """
     p = player(board)
 
+    # If empty board is provided as input, return corner.
+    if board == [[EMPTY]*3]*3:
+        return (0, 0)
+
     if p == X:
-        best_action = None
-        v = -2
-
+        v = float("-inf")
+        selected_action = None
         for action in actions(board):
-            min_result = min_value(result(board, action))
-            if min_result > v:
-                v = min_result
-                best_action = action
+            minValueResult = minValue(result(board, action))
+            if minValueResult > v:
+                v = minValueResult
+                selected_action = action
     elif p == O:
-        v = 2
-        best_action = None
+        v = float("inf")
+        selected_action = None
         for action in actions(board):
-            max_result = max_value(result(board, action))
-            if max_result < v:
-                v = max_result
-                best_action = action
-    return best_action
+            maxValueResult = maxValue(result(board, action))
+            if maxValueResult < v:
+                v = maxValueResult
+                selected_action = action
+
+    return selected_action
 
 
-def min_value(board):
+def maxValue(board):
     if terminal(board):
         return utility(board)
-    v = -2
-
+    v = float("-inf")
     for action in actions(board):
-        v = max(v, max_value(result(board, action)))
+        v = max(v, minValue(result(board, action)))
+
     return v
 
 
-def max_value(board):
+def minValue(board):
     if terminal(board):
         return utility(board)
-    v = 2
+    v = float("inf")
     for action in actions(board):
-        v = min(v, min_value(result(board, action)))
+        v = min(v, maxValue(result(board, action)))
+
     return v
