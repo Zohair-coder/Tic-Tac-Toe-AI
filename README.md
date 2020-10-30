@@ -21,3 +21,5 @@ python3 runner.py
 ```
 
 Enjoy!
+
+Note: X always makes the first move.
